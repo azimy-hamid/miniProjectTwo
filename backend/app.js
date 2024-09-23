@@ -1,6 +1,7 @@
 import express, { response } from "express";
 import cors from "cors";
 import userRoutes from "./routes/userRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
 
 const app = express();
 
@@ -19,5 +20,6 @@ app.get("/", async (req, res) => {
 });
 
 app.use("/user", userRoutes);
+app.use("/tasks", userRoutes);
 
 export default app;

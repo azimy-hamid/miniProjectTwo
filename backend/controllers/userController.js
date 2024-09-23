@@ -4,7 +4,6 @@ import validator from "validator";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
-import { generateUniqueUUID } from "../utils/generateUniqueUUID.js";
 
 dotenv.config();
 
