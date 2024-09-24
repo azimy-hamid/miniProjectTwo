@@ -6,11 +6,11 @@ const TodoTask = sequelize.define(
   "TodoTask",
   {
     task_id_pk: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       primaryKey: true,
     },
     user_id_fk: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       references: {
         model: User,
         key: "user_id_pk",

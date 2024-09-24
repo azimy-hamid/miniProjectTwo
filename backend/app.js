@@ -20,6 +20,6 @@ app.get("/", async (req, res) => {
 });
 
 app.use("/user", userRoutes);
-app.use("/tasks", userRoutes);
+app.use("/task", taskRoutes);
 
 export default app;

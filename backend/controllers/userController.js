@@ -4,27 +4,28 @@ import validator from "validator";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
+import { Sequelize, Op } from "sequelize";
 
 dotenv.config();
 
 // generic functions ----------------------------------------------
-const checkUUIDExists = async (uuid) => {
+const checkUUIDExists = async (uuid, field) => {
   const existing = await User.findOne({
     where: {
-      user_id_pk: uuid,
+      [field]: uuid,
     },
   });
 
   return existing !== null; // Return true if UUID exists, false if not
 };
 
-const generateUniqueUUID = async () => {
+const generateUniqueUUID = async (field) => {
   let uuid = uuidv4();
-  let exists = await checkUUIDExists(uuid); // Initial check
+  let exists = await checkUUIDExists(uuid, field); // Initial check
 
   while (exists) {
     uuid = uuidv4(); // Generate a new UUID
-    exists = await checkUUIDExists(uuid); // Check if the new UUID exists
+    exists = await checkUUIDExists(uuid, field); // Check if the new UUID exists
   }
 
   return uuid;
@@ -55,8 +56,8 @@ const registerUser = async (req, res) => {
       });
     }
 
-    let user_id_pk = generateUniqueUUID("user_id_pk");
-
+    let user_id_pk = await generateUniqueUUID("user_id_pk");
+    console.log(` the uuid: ${user_id_pk}`);
     if (
       user_id_pk &&
       username &&
@@ -71,7 +72,7 @@ const registerUser = async (req, res) => {
         user_id_pk,
         username,
         email,
-        password: hashedPassword, // Store hashed password in the database
+        password: hashedPassword,
         name,
         last_name,
       });
@@ -84,11 +85,11 @@ const registerUser = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
-
+      console.log(token);
       return res.status(200).json({ token });
     }
   } catch (error) {
-    res.status(500).json({ error });
+    res.status(500).json({ catchBlockErr: error });
   }
 };
 
@@ -100,7 +101,7 @@ const loginUser = async (req, res) => {
 
     if (!username || !email || !password) {
       return res
-        .sttus(400)
+        .status(400)
         .json({ loginUserError: "All fields must be filled!" });
     }
 
@@ -113,18 +114,19 @@ const loginUser = async (req, res) => {
     if (username && validator.isEmail(email) && password) {
       const user = await User.findOne({
         where: {
-          [Sequelize.Op.or]: [{ username: username }, { email: email }],
+          username: username,
+          email: email,
         },
       });
 
       if (!user) {
-        return res.sttus(400).json({
+        return res.status(400).json({
           loginUserError: "User Not Found! Please try again or sign up.",
         });
       }
 
       if (user.hidden === 1) {
-        return res.sttus(400).json({
+        return res.status(400).json({
           loginUserError: "User deleted! Recover your account first!",
         });
       }
@@ -149,7 +151,7 @@ const loginUser = async (req, res) => {
       }
     }
   } catch (error) {
-    res.status(500).json({ error });
+    res.status(500).json({ loginUserCatchBlockError: error });
   }
 };
 
@@ -157,18 +159,23 @@ const loginUser = async (req, res) => {
 
 const updateUserDetails = async (req, res) => {
   try {
-    const token = req.header.authorization.split(" ", [1]);
+    const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) {
-      return res.status(401).json({ error: "Token is required!" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token is expired!" });
+      }
+      return res.status(401).json({ error: "Invalid token!" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
     const { username, email, name, last_name } = req.body;
 
-    if (!username && email && name && last_name) {
+    if ((!username, !email && !name && !last_name)) {
       return res
         .status(400)
         .json({ updateUserError: "At least one field must be updated!" });
@@ -184,6 +191,12 @@ const updateUserDetails = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ updateUserError: "User not found!" });
+    }
+
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        loginUserError: "User deleted! Recover your account first!",
+      });
     }
 
     await user.update({
@@ -208,13 +221,18 @@ const updateUserDetails = async (req, res) => {
 
 const hideUser = async (req, res) => {
   try {
-    const token = req.header.authorization.split(" ")[1];
+    const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) {
-      return res.status(401).json({ error: "Token is required!" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token is expired!" });
+      }
+      return res.status(401).json({ error: "Invalid token!" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
     // Find the user

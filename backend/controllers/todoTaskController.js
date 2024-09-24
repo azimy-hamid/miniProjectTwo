@@ -1,45 +1,66 @@
 import TodoTask from "../models/TodoTask.js";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 dotenv.config();
 
 // generic functions ----------------------------------------------
-const checkUUIDExists = async (uuid) => {
+
+const checkUUIDExists = async (uuid, field) => {
   const existing = await TodoTask.findOne({
     where: {
-      task_id_pk: uuid,
+      [field]: uuid,
     },
   });
 
   return existing !== null; // Return true if UUID exists, false if not
 };
 
-const generateUniqueUUID = async () => {
+const generateUniqueUUID = async (field) => {
   let uuid = uuidv4();
-  let exists = await checkUUIDExists(uuid); // Initial check
+  let exists = await checkUUIDExists(uuid, field); // Initial check
 
   while (exists) {
     uuid = uuidv4(); // Generate a new UUID
-    exists = await checkUUIDExists(uuid); // Check if the new UUID exists
+    exists = await checkUUIDExists(uuid, field); // Check if the new UUID exists
   }
 
   return uuid;
 };
+
 // ------------------------------------------------------------
 
 // get all the tasks for a specific user
 
 const getAllTasks = async (req, res) => {
   try {
-    const token = req.header.authorization.split(" ", [1]);
+    const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) {
-      return res.status(401).json({ error: "Token is required!" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token is expired!" });
+      }
+      return res.status(401).json({ error: "Invalid token!" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
+
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ getAllTasksUserError: "User not found!" });
+    }
+
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getAllTasksUserError: "User deleted! Recover your account first!",
+      });
+    }
 
     const user_id_fk = userId; // Extract userId from authenticated request
 
@@ -59,7 +80,6 @@ const getAllTasks = async (req, res) => {
       tasks,
     });
   } catch (error) {
-    console.error(error);
     return res
       .status(500)
       .json({ error: "An error occurred while retrieving tasks." });
@@ -68,16 +88,33 @@ const getAllTasks = async (req, res) => {
 
 // create task
 
-const createTask = async () => {
+const createTask = async (req, res) => {
   try {
     const { title, description, priority, due_date, status } = req.body;
-    const token = req.header.authorization.split(" ", [1]);
+    const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) {
-      return res.status(401).json({ error: "Token is required!" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token is expired!" });
+      }
+      return res.status(401).json({ error: "Invalid token!" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findByPk(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ getAllTasksUserError: "User not found!" });
+    }
+
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getAllTasksUserError: "User deleted! Recover your account first!",
+      });
+    }
+
     const user_id_fk = decoded.userId;
 
     if (
@@ -92,7 +129,7 @@ const createTask = async () => {
         createTaskMessage: "All fields must be filled!",
       });
     }
-    let task_id_pk = generateUniqueUUID();
+    let task_id_pk = await generateUniqueUUID("task_id_pk");
 
     if (
       task_id_pk &&
@@ -117,21 +154,51 @@ const createTask = async () => {
         task: newTask,
       });
     }
-  } catch (error) {}
+  } catch (error) {
+    return res.status(500).json({ createTaskError: error });
+  }
 };
 
 // update a task
 
 const updateTask = async (req, res) => {
   try {
-    const { task_id_pk } = req.params; // Get the task ID from the request parameters
+    const { taskId } = req.params; // Get the task ID from the request parameters
+    const task_id_pk = taskId;
+
     const { title, description, priority, due_date, status } = req.body;
+
+    const token = req.headers.authorization?.split(" ")[1];
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token is expired!" });
+      }
+      return res.status(401).json({ error: "Invalid token!" });
+    }
+
+    const user = await User.findByPk(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ getAllTasksUserError: "User not found!" });
+    }
+
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getAllTasksUserError: "User deleted! Recover your account first!",
+      });
+    }
+
+    const user_id_fk = decoded.userId;
 
     // Find the task by ID
     const task = await TodoTask.findOne({
       where: {
         task_id_pk,
-        user_id_fk: req.userId, // Ensure that the user is trying to update their own task
+        user_id_fk: user_id_fk, // Ensure that the user is trying to update their own task
       },
     });
 
@@ -162,13 +229,44 @@ const updateTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
   try {
-    const { task_id_pk } = req.params; // Get the task ID from the request parameters
+    const { taskId } = req.params; // Get the task ID from the request parameters
+    const task_id_pk = taskId;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "Token is required!" });
+    }
+
+    // Verify the token and handle potential errors
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({ error: "Token is expired!" });
+      }
+      return res.status(401).json({ error: "Invalid token!" });
+    }
+
+    const user = await User.findByPk(decoded.userId);
+
+    if (!user) {
+      return res.status(404).json({ getAllTasksUserError: "User not found!" });
+    }
+
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getAllTasksUserError: "User deleted! Recover your account first!",
+      });
+    }
+
+    const user_id_fk = decoded.userId;
 
     // Find the task by ID and ensure it belongs to the authenticated user
     const task = await TodoTask.findOne({
       where: {
         task_id_pk,
-        user_id_fk: req.userId, // Ensure the task belongs to the user
+        user_id_fk: user_id_fk, // Ensure the task belongs to the user
       },
     });
 
