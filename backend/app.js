@@ -2,7 +2,7 @@ import express, { response } from "express";
 import cors from "cors";
 import userRoutes from "./routes/userRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
-
+import { verifyUserToken } from "./utils/verifyUserToken.js";
 const app = express();
 
 app.use(express.json());
@@ -18,6 +18,8 @@ app.get("/", async (req, res) => {
     res.status(500).json({ rootEndpointError: error });
   }
 });
+
+app.get("/verifyToken", verifyUserToken);
 
 app.use("/user", userRoutes);
 app.use("/task", taskRoutes);

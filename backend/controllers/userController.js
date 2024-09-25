@@ -40,7 +40,7 @@ const registerUser = async (req, res) => {
 
     if (!username || !email || !password || !name || !last_name) {
       return res
-        .sttus(400)
+        .status(400)
         .json({ registerUserError: "All fields must be filled!" });
     }
 
@@ -89,7 +89,11 @@ const registerUser = async (req, res) => {
       return res.status(200).json({ token });
     }
   } catch (error) {
-    res.status(500).json({ catchBlockErr: error });
+    res.status(500).json({
+      registerUserError:
+        "An unexpected error occurred. Please try again later.",
+      catchBlockErr: error,
+    });
   }
 };
 
@@ -146,12 +150,15 @@ const loginUser = async (req, res) => {
         return res.status(200).json({ token });
       } else {
         return res.status(400).json({
-          loginUserError: "Incorrect Credentials! Please try again.",
+          loginUserError: "Incorrect Password.",
         });
       }
     }
   } catch (error) {
-    res.status(500).json({ loginUserCatchBlockError: error });
+    res.status(500).json({
+      loginUserError: "An unexpected error occurred. Please try again later.",
+      catchBlockErr: error,
+    });
   }
 };
 
@@ -166,9 +173,9 @@ const updateUserDetails = async (req, res) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        return res.status(401).json({ error: "Token is expired!" });
+        return res.status(401).json({ updateUserMessage: "Token is expired!" });
       }
-      return res.status(401).json({ error: "Invalid token!" });
+      return res.status(401).json({ updateUserMessage: "Invalid token!" });
     }
 
     const userId = decoded.userId;
@@ -178,24 +185,24 @@ const updateUserDetails = async (req, res) => {
     if ((!username, !email && !name && !last_name)) {
       return res
         .status(400)
-        .json({ updateUserError: "At least one field must be updated!" });
+        .json({ updateUserMessage: "At least one field must be updated!" });
     }
 
     if (email && !validator.isEmail(email)) {
       return res
         .status(400)
-        .json({ updateUserError: "Enter a valid email address!" });
+        .json({ updateUserMessage: "Enter a valid email address!" });
     }
 
     const user = await User.findByPk(userId);
 
     if (!user) {
-      return res.status(404).json({ updateUserError: "User not found!" });
+      return res.status(404).json({ updateUserMessage: "User not found!" });
     }
 
     if (user.hidden === 1) {
       return res.status(400).json({
-        loginUserError: "User deleted! Recover your account first!",
+        updateUserMessage: "User deleted! Recover your account first!",
       });
     }
 
@@ -208,12 +215,13 @@ const updateUserDetails = async (req, res) => {
 
     return res
       .status(200)
-      .json({ updateUserDone: "User details updated successfully!" });
+      .json({ updateUserMessage: "User details updated successfully!" });
   } catch (error) {
     console.error("Error updating user details:", error);
-    return res
-      .status(500)
-      .json({ error: "An error occurred while updating user details." });
+    return res.status(500).json({
+      updateUserMessage: "An error occurred while updating user details.",
+      catchBlockErr: error,
+    });
   }
 };
 
