@@ -145,7 +145,7 @@ const Sidebar = () => {
 
             <Item
               title="Add Task"
-              to="/getAllTask"
+              to="/createTask"
               icon={<LibraryAddIcon />}
               selected={selected}
               setSelected={setSelected}

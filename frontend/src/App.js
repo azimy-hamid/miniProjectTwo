@@ -9,6 +9,7 @@ import SignupForm from "./pages/signupForm/index.jsx";
 import Dashboard from "./pages/dashboard/index.jsx";
 import UpdateUserForm from "./pages/updateUserDetailsForm/index.jsx";
 import Tasks from "./pages/allTasksTable/index.jsx";
+import CreateTaskForm from "./pages/createTaskForm/index.jsx";
 
 const API_URL = "http://localhost:8000/verifyToken"; // Base URL of your API
 
@@ -85,6 +86,13 @@ function App() {
               <Route
                 path="/getAllTask"
                 element={isAuthenticated ? <Tasks /> : <Navigate to="/" />}
+              />
+
+              <Route
+                path="/createTask"
+                element={
+                  isAuthenticated ? <CreateTaskForm /> : <Navigate to="/" />
+                }
               />
             </Routes>
           </main>

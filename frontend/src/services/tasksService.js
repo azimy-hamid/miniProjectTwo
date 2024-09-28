@@ -21,4 +21,24 @@ const fetchAllTasks = async () => {
   }
 };
 
-export { fetchAllTasks };
+const createTask = async (taskDetails) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.post(`${API_URL}/create`, taskDetails, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.data;
+
+    return data;
+  } catch (error) {
+    console.error("Error getting the tasks:", error);
+    throw error; // Propagate the error to handle it where the function is called
+  }
+};
+
+export { fetchAllTasks, createTask };

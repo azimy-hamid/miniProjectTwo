@@ -98,20 +98,20 @@ const createTask = async (req, res) => {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        return res.status(401).json({ error: "Token is expired!" });
+        return res.status(401).json({ createTaskMessage: "Token is expired!" });
       }
-      return res.status(401).json({ error: "Invalid token!" });
+      return res.status(401).json({ createTaskMessage: "Invalid token!" });
     }
 
     const user = await User.findByPk(decoded.userId);
 
     if (!user) {
-      return res.status(404).json({ getAllTasksUserError: "User not found!" });
+      return res.status(404).json({ createTaskMessage: "User not found!" });
     }
 
     if (user.hidden === 1) {
       return res.status(400).json({
-        getAllTasksUserError: "User deleted! Recover your account first!",
+        createTaskMessage: "User deleted! Recover your account first!",
       });
     }
 
@@ -155,7 +155,10 @@ const createTask = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.status(500).json({ createTaskError: error });
+    return res.status(500).json({
+      createTaskMessage: "An error occured while creating the task.",
+      createTaskCatchBlockError: error,
+    });
   }
 };
 
