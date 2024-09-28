@@ -71,7 +71,7 @@ const getAllTasks = async (req, res) => {
     }
 
     const tasks = await TodoTask.findAll({
-      where: { user_id_fk },
+      where: { user_id_fk, hidden: 0 },
       order: [["due_date", "ASC"]], // Optional: Order by due date
     });
 
@@ -202,6 +202,7 @@ const updateTask = async (req, res) => {
       where: {
         task_id_pk,
         user_id_fk: user_id_fk, // Ensure that the user is trying to update their own task
+        hidden: 0,
       },
     });
 
@@ -269,7 +270,7 @@ const deleteTask = async (req, res) => {
     const task = await TodoTask.findOne({
       where: {
         task_id_pk,
-        user_id_fk: user_id_fk, // Ensure the task belongs to the user
+        user_id_fk, // Ensure the task belongs to the user
       },
     });
 
@@ -277,17 +278,18 @@ const deleteTask = async (req, res) => {
       return res.status(404).json({ deleteTaskMessage: "Task not found." });
     }
 
-    // Delete the task
-    await task.destroy();
+    // Set the hidden field to 1 instead of deleting the task
+    task.hidden = 1;
+    await task.save(); // Save the changes to the task
 
     return res
       .status(200)
-      .json({ deleteTaskMessage: "Task deleted successfully." });
+      .json({ deleteTaskMessage: "Task marked as deleted (hidden)." });
   } catch (error) {
     console.error(error);
     return res
       .status(500)
-      .json({ error: "An error occurred while deleting the task." });
+      .json({ error: "An error occurred while marking the task as deleted." });
   }
 };
 

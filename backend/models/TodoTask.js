@@ -36,6 +36,10 @@ const TodoTask = sequelize.define(
       type: DataTypes.ENUM("incomplete", "complete"),
       defaultValue: "incomplete",
     },
+    hidden: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "todo_tasks", // Specify the table name
