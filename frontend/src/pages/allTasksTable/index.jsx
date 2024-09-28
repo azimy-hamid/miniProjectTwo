@@ -1,72 +1,144 @@
 import React, { useState, useEffect } from "react";
-import { Box, useTheme } from "@mui/material";
+import { Box, Button, useTheme } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../themes";
 import PageHeader from "../../components/PageHeader";
-import axios from "axios"; // Use axios or fetch for API calls
 import Topbar from "../../components/global/TopBar";
 import Sidebar from "../../components/global/SideBar";
-import { fetchAllTasks } from "../../services/tasksService";
+import {
+  fetchAllTasks,
+  updateTask,
+  deleteTask,
+} from "../../services/tasksService"; // Import markTaskAsComplete function
 
 const Tasks = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [tasks, setTasks] = useState([]); // State to store fetched task data
-  const [loading, setLoading] = useState(true); // State to track loading status
-  const [error, setError] = useState(null); // State to track error status
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch data from API
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const fetchedTasks = await fetchAllTasks();
-        setTasks(fetchedTasks); // Set fetched data to state
-        setLoading(false); // Set loading to false once data is fetched
+        setTasks(fetchedTasks);
+        setLoading(false);
       } catch (err) {
-        setError(err.message); // Set error message
-        setLoading(false); // Set loading to false even if there's an error
+        setError(err.message);
+        setLoading(false);
       }
     };
 
-    fetchTasks(); // Call the function to fetch data
+    fetchTasks();
   }, []);
+
+  // Handle marking task as complete
+  const handleCompleteTask = async (taskId) => {
+    try {
+      // Call the updateTask function with the task ID and the updated status
+      const taskData = { status: "complete" }; // Update the status to Completed
+      await updateTask(taskId, taskData); // Call the API to update the task
+
+      // Update the local state to reflect the change
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.task_id_pk === taskId ? { ...task, status: "complete" } : task
+        )
+      );
+    } catch (err) {
+      console.error("Failed to mark task as complete:", err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await deleteTask(taskId); // Call the API to delete the task
+
+      // Update local state to remove the deleted task
+      setTasks((prevTasks) =>
+        prevTasks.filter((task) => task.task_id_pk !== taskId)
+      );
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+    }
+  };
 
   // Define columns according to your task data structure
   const columns = [
-    // { field: "task_id_pk", headerName: "Task ID", flex: 0.5 }, // Unique ID for each task
-    // { field: "user_id_fk", headerName: "User ID", flex: 0.5 }, // User ID foreign key
     {
-      field: "title", // Assuming this field represents the task name
+      field: "title",
       headerName: "Title",
       flex: 1,
       cellClassName: "name-column--cell",
     },
     {
-      field: "description", // Assuming this field represents the task name
+      field: "description",
       headerName: "Description",
       flex: 1.5,
       cellClassName: "name-column--cell",
     },
     {
-      field: "priority", // Assuming this field represents the task name
+      field: "priority",
       headerName: "Priority",
       cellClassName: "name-column--cell",
     },
-    { field: "status", headerName: "Status" }, // Status of the task (e.g., completed, pending)
+    { field: "status", headerName: "Status" }, // Status of the task
     {
       field: "due_date",
       headerName: "Due Date",
       headerAlign: "left",
       flex: 1,
+      renderCell: (params) => {
+        // Convert the due_date to a local string in EDT
+        const utcDate = new Date(params.value); // Assuming the date is stored in UTC
+        const edtDate = utcDate.toLocaleString("en-US", {
+          timeZone: "America/New_York",
+        });
+
+        return edtDate; // Return the converted date string
+      },
+    },
+    {
+      field: "markComplete",
+      headerName: "Mark As Complete",
+      flex: 0.6,
+      sortable: false,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => handleCompleteTask(params.row.task_id_pk)} // Call handleCompleteTask with task ID
+          disabled={params.row.status === "Completed"} // Disable button if task is already completed
+        >
+          {params.row.status === "Completed" ? "Completed" : "Mark as Complete"}
+        </Button>
+      ),
+    },
+
+    {
+      field: "deleteTask",
+      headerName: "Delete Task",
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => handleDeleteTask(params.row.task_id_pk)} // Call handleDeleteTask with task ID
+          // sx={{ ml: 1 }}
+        >
+          Delete
+        </Button>
+      ),
     },
   ];
 
-  // Display a loading message while data is being fetched
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  // Display an error message if there is an error
   if (error) {
     return <div>Error: {error}</div>;
   }
@@ -81,18 +153,10 @@ const Tasks = () => {
           m="40px 0 0 0"
           height="75vh"
           sx={{
-            "& .MuiDataGrid-root": {
-              border: "none",
-            },
-            "& .MuiDataGrid-cell": {
-              border: "none !important",
-            },
-            "& .css-1jlz3st": {
-              borderTop: "none !important",
-            },
-            "& .name-column--cell": {
-              color: colors.greenAccent[300],
-            },
+            "& .MuiDataGrid-root": { border: "none" },
+            "& .MuiDataGrid-cell": { border: "none !important" },
+            "& .css-1jlz3st": { borderTop: "none !important" },
+            "& .name-column--cell": { color: colors.greenAccent[300] },
             "& .MuiDataGrid-columnHeader": {
               backgroundColor: colors.blueAccent[700],
               borderBottom: "none !important",
@@ -113,12 +177,10 @@ const Tasks = () => {
           }}
         >
           <DataGrid
-            rows={tasks} // Use fetched task data as rows
-            columns={columns} // Columns defined based on task data structure
-            getRowId={(row) => row.task_id_pk} // Ensure each row has a unique ID
-            slots={{
-              toolbar: GridToolbar,
-            }}
+            rows={tasks}
+            columns={columns}
+            getRowId={(row) => row.task_id_pk}
+            slots={{ toolbar: GridToolbar }}
           />
         </Box>
       </Box>

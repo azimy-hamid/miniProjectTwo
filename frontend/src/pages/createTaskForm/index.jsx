@@ -164,12 +164,11 @@ const CreateTaskForm = () => {
                     <MenuItem value="incomplete">Incomplete</MenuItem>
                     <MenuItem value="complete">Complete</MenuItem>
                   </TextField>
-
                   <TextField
                     fullWidth
                     variant="filled"
-                    type="date"
-                    label="Due Date"
+                    type="datetime-local" // Changed from 'date' to 'datetime-local'
+                    label="Due Date & Time"
                     InputLabelProps={{ shrink: true }}
                     onBlur={handleBlur}
                     onChange={handleChange}
@@ -178,7 +177,7 @@ const CreateTaskForm = () => {
                     error={!!touched.due_date && !!errors.due_date}
                     helperText={touched.due_date && errors.due_date}
                     sx={{ gridColumn: "span 4" }}
-                  />
+                  />{" "}
                 </Box>
 
                 <Box

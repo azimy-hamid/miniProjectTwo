@@ -150,6 +150,22 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             />
+
+            <Typography
+              variant="h6"
+              color={colors.grey[300]}
+              sx={{ m: "15px 0 5px 20px" }}
+            >
+              Calendar
+            </Typography>
+
+            <Item
+              title="View Calendar"
+              to="/tasksCalendar"
+              icon={<LibraryAddIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </Box>
         </Menu>
       </ProSidebar>

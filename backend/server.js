@@ -8,7 +8,7 @@ dotenv.config();
 
 const syncDatabase = async () => {
   try {
-    await sequelize.sync({ force: true }); // You can use { force: true } during development to reset the tables
+    await sequelize.sync(); // You can use { force: true } during development to reset the tables
     console.log("Database & tables created!");
   } catch (error) {
     console.error("Error creating database & tables:", error);
