@@ -356,4 +356,88 @@ const getTaskCounts = async (req, res) => {
   }
 };
 
-export { getAllTasks, createTask, updateTask, deleteTask, getTaskCounts };
+const getTaskPriorityCounts = async (req, res) => {
+  try {
+    // Get the token from the request headers
+    const token = req.headers.authorization?.split(" ")[1];
+
+    // Verify the token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(401)
+          .json({ getTaskPriorityCountsMessage: "Token is expired!" });
+      }
+      return res
+        .status(401)
+        .json({ getTaskPriorityCountsMessage: "Invalid token!" });
+    }
+
+    const userId = decoded.userId;
+
+    // Validate the user
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ getTaskPriorityCountsMessage: "User not found!" });
+    }
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getTaskPriorityCountsMessage:
+          "User deleted! Recover your account first!",
+      });
+    }
+
+    // Query for task counts by priority (low, medium, high)
+    const counts = await TodoTask.findAll({
+      where: { user_id_fk: userId, hidden: 0 }, // Only non-hidden tasks
+      attributes: [
+        "priority",
+        [sequelize.fn("COUNT", sequelize.col("priority")), "count"],
+      ],
+      group: ["priority"],
+    });
+
+    // Extract counts for each priority
+    const lowPriorityCount =
+      counts.find((item) => item.dataValues.priority === "low")?.dataValues
+        .count || 0;
+    const mediumPriorityCount =
+      counts.find((item) => item.dataValues.priority === "medium")?.dataValues
+        .count || 0;
+    const highPriorityCount =
+      counts.find((item) => item.dataValues.priority === "high")?.dataValues
+        .count || 0;
+
+    // Return the counts
+    return res.status(200).json({
+      getTaskPriorityCountsMessage:
+        "Number of tasks by priority retrieved successfully",
+      numberOfLowMediumAndHighPriorityTasks: {
+        lowPriorityCount,
+        mediumPriorityCount,
+        highPriorityCount,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching task priority counts:", error);
+    return res.status(500).json({
+      getTaskPriorityCountsMessage:
+        "An error occurred while retrieving task priority counts.",
+      getTaskPriorityCountsCatchBlockError: error,
+    });
+  }
+};
+
+export {
+  getAllTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  getTaskCounts,
+  getTaskPriorityCounts,
+};

@@ -14,5 +14,10 @@ taskRoutes.delete(
 );
 
 taskRoutes.get("/getTaskCounts", authenticate, taskController.getTaskCounts);
+taskRoutes.get(
+  "/getTaskPriorityCounts",
+  authenticate,
+  taskController.getTaskPriorityCounts
+);
 
 export default taskRoutes;

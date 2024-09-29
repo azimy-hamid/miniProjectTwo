@@ -6,6 +6,7 @@ import Topbar from "../../components/global/TopBar.jsx";
 import Sidebar from "../../components/global/SideBar.jsx";
 import PieChart from "../../components/charts/PieChart.jsx";
 import { tokens } from "../../themes.js";
+import BarChart from "../../components/charts/BarChart.jsx";
 
 const Dashboard = () => {
   //   const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -28,7 +29,7 @@ const Dashboard = () => {
           gap="20px"
         >
           <Box
-            gridColumn="span 6"
+            gridColumn="span 5"
             gridRow="span 2"
             backgroundColor={colors.primary[400]}
             display="flex"
@@ -36,6 +37,17 @@ const Dashboard = () => {
             justifyContent="center"
           >
             <PieChart />
+          </Box>
+
+          <Box
+            gridColumn="span 7"
+            gridRow="span 2"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <BarChart />
           </Box>
         </Box>
       </Box>
