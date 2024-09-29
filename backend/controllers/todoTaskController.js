@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import sequelize from "../config/dbConfig.js";
 
 dotenv.config();
 
@@ -293,4 +294,66 @@ const deleteTask = async (req, res) => {
   }
 };
 
-export { getAllTasks, createTask, updateTask, deleteTask };
+const getTaskCounts = async (req, res) => {
+  try {
+    // Get the token from the request headers
+    const token = req.headers.authorization?.split(" ")[1];
+
+    // Verify the token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(401)
+          .json({ getTaskCountsMessage: "Token is expired!" });
+      }
+      return res.status(401).json({ getTaskCountsMessage: "Invalid token!" });
+    }
+
+    const userId = decoded.userId;
+
+    // Validate the user
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ getTaskCountsMessage: "User not found!" });
+    }
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getTaskCountsMessage: "User deleted! Recover your account first!",
+      });
+    }
+
+    // Query for completed and incomplete task counts
+    const counts = await TodoTask.findAll({
+      where: { user_id_fk: userId, hidden: 0 }, // Make sure to consider only non-hidden tasks
+      attributes: [
+        "status",
+        [sequelize.fn("COUNT", sequelize.col("status")), "count"],
+      ],
+      group: ["status"],
+    });
+
+    const completedCount =
+      counts.find((item) => item.dataValues.status === "complete")?.dataValues
+        .count || 0;
+    const incompleteCount =
+      counts.find((item) => item.dataValues.status === "incomplete")?.dataValues
+        .count || 0;
+
+    return res.status(200).json({
+      getTaskCountsMessage:
+        "Number of completed and incomplete tasks retrieved successfully",
+      numberOfCompletedAndIncompletedTasks: { completedCount, incompleteCount },
+    });
+  } catch (error) {
+    console.error("Error fetching task counts:", error);
+    return res.status(500).json({
+      getTaskCountsMessage: "An error occurred while retrieving task counts.",
+      getTaskCountsCatchBlockError: error,
+    });
+  }
+};
+
+export { getAllTasks, createTask, updateTask, deleteTask, getTaskCounts };

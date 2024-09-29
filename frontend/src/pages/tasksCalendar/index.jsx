@@ -1,41 +1,69 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
-import { formatDate } from "@fullcalendar/core/index.js";
+import { formatDate } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
 import {
   Box,
   List,
   ListItem,
   ListItemText,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
   useTheme,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel,
 } from "@mui/material";
 import PageHeader from "../../components/PageHeader";
 import { tokens } from "../../themes";
-import { fetchAllTasks } from "../../services/tasksService";
 import Topbar from "../../components/global/TopBar";
 import Sidebar from "../../components/global/SideBar";
+import {
+  fetchAllTasks,
+  createTask,
+  deleteTask,
+  updateTask,
+} from "../../services/tasksService";
 
 const Calendar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [currentEvents, setCurrentEvents] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: "",
+    description: "",
+    due_date: "",
+    priority: "medium",
+    status: "incomplete",
+  });
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [taskToComplete, setTaskToComplete] = useState(null);
 
   // Fetch tasks from your API when the component loads
   useEffect(() => {
     const fetchTodoTasks = async () => {
       try {
-        const tasks = await fetchAllTasks();
+        const tasks = await fetchAllTasks(); // Fetch from controller
         const events = tasks.map((task) => ({
           id: task.task_id_pk,
-          title: task.title,
-          start: task.due_date, // Assuming `due_date` is the field for task deadline
-          allDay: true, // Assuming all tasks are all-day events; adjust if needed
+          title: `${task.title} (${task.priority})`,
+          description: task.description,
+          start: task.due_date,
+          status: task.status,
+          allDay: true,
         }));
-
         setCurrentEvents(events);
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
@@ -45,36 +73,46 @@ const Calendar = () => {
     fetchTodoTasks();
   }, []);
 
-  const handleDateClick = (selected) => {
-    const title = prompt("Please Enter a new Title for your Event");
-    const calendarApi = selected.view.calendar;
-    calendarApi.unselect();
+  // Handle modal open/close
+  const handleOpenModal = (selected) => {
+    setSelectedDate(selected); // Store the selected date
+    setNewTask({ ...newTask, due_date: selected.startStr }); // Prepopulate date
+    setModalOpen(true);
+  };
 
-    if (title) {
-      // Send the new task to your API
-      const newTask = {
-        title,
-        due_date: selected.startStr,
-      };
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
 
-      // Example: POST the new task to your API
-      fetch("/api/todoTasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTask),
-      })
-        .then((response) => response.json())
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setNewTask((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle form submission in the modal
+  const handleCreateTask = () => {
+    const calendarApi = selectedDate.view.calendar;
+    calendarApi.unselect(); // Unselect the date after task creation
+
+    if (newTask.title) {
+      createTask(newTask)
         .then((task) => {
-          // Add the new event to FullCalendar
-          calendarApi.addEvent({
+          const newEvent = {
             id: task.task_id_pk,
-            title: task.title,
+            title: `${task.title} (${task.priority})`,
             start: task.due_date,
-            allDay: true, // Assuming it's all-day; change if necessary
-          });
-          setCurrentEvents((prev) => [...prev, { ...task, allDay: true }]);
+            description: task.description,
+            status: task.status,
+            allDay: true,
+          };
+
+          // Add the new event to FullCalendar
+          calendarApi.addEvent(newEvent);
+
+          // Update the local state to include the new event
+          setCurrentEvents((prevEvents) => [...prevEvents, newEvent]);
+
+          setModalOpen(false); // Close modal after creation
         })
         .catch((error) => {
           console.error("Failed to create task:", error);
@@ -82,27 +120,52 @@ const Calendar = () => {
     }
   };
 
-  const handleEventClick = (selected) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete the event '${selected.event.title}'?`
-      )
-    ) {
-      // Remove event from the calendar
-      selected.event.remove();
+  const handleOpenDeleteModal = (taskId) => {
+    setTaskToDelete(taskId);
+    setTaskToComplete(taskId);
+    setDeleteModalOpen(true);
+  };
 
-      // Delete the task from your API
-      fetch(`/api/todoTasks/${selected.event.id}`, {
-        method: "DELETE",
-      })
-        .then(() => {
-          // Update the currentEvents state to reflect the deletion
-          setCurrentEvents((prev) =>
-            prev.filter((event) => event.id !== selected.event.id)
-          );
-          console.log("Task deleted");
-        })
-        .catch((error) => console.error("Failed to delete task:", error));
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setTaskToDelete(null);
+    setTaskToComplete(null);
+  };
+
+  const handleDeleteTask = async () => {
+    try {
+      await deleteTask(taskToDelete);
+      setCurrentEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== taskToDelete)
+      );
+      handleCloseDeleteModal();
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    }
+  };
+
+  const handleCompleteTask = async () => {
+    try {
+      // Call the updateTask function with the task ID and the updated status
+      const taskData = { status: "complete" }; // Update the status to Completed
+      await updateTask(taskToComplete, taskData); // Call the API to update the task
+
+      // Update the local state to reflect the change
+      setCurrentEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === taskToComplete
+            ? {
+                ...event,
+                status: "complete",
+                title: `${event.title} (complete)`,
+              }
+            : event
+        )
+      );
+
+      handleCloseDeleteModal();
+    } catch (err) {
+      console.error("Failed to mark task as complete:", err);
     }
   };
 
@@ -123,8 +186,14 @@ const Calendar = () => {
             backgroundColor={colors.primary[400]}
             p="15px"
             borderRadius="4px"
+            sx={{
+              maxHeight: "75vh", // Limit the height of the container
+              overflowY: "auto", // Enable scrolling when content overflows
+            }}
           >
-            <Typography variant="h5">Events</Typography>
+            <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+              Events
+            </Typography>
             <List>
               {currentEvents.map((event) => (
                 <ListItem
@@ -136,15 +205,31 @@ const Calendar = () => {
                   }}
                 >
                   <ListItemText
-                    primary={event.title}
+                    primary={event.title || "No Title"}
                     secondary={
-                      <Typography>
-                        {formatDate(event.start, {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </Typography>
+                      <>
+                        {event.start && (
+                          <Typography>
+                            {formatDate(event.start, {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </Typography>
+                        )}
+                        <Typography variant="body2">
+                          {event.description || "No Description"}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          style={{
+                            color:
+                              event.status === "complete" ? "green" : "orange",
+                          }}
+                        >
+                          {event.status || "Status not set"}
+                        </Typography>
+                      </>
                     }
                   />
                 </ListItem>
@@ -156,31 +241,87 @@ const Calendar = () => {
           <Box flex={"1 1 100%"} ml="15px">
             <FullCalendar
               height="75vh"
-              plugins={[
-                dayGridPlugin,
-                timeGridPlugin,
-                interactionPlugin,
-                listPlugin,
-              ]}
+              plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
               headerToolbar={{
                 left: "prev,next today",
                 center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay,listMonth",
+                right:
+                  "dayGridDay,dayGridWeek,dayGridMonth,dayGridYear,listMonth",
               }}
               initialView="dayGridMonth"
               editable={true}
               selectable={true}
               selectMirror={true}
               dayMaxEvents={true}
-              select={handleDateClick}
-              eventClick={handleEventClick}
-              eventsSet={(events) => {
-                setCurrentEvents(events);
+              select={handleOpenModal}
+              events={currentEvents}
+              eventClick={(info) => {
+                handleOpenDeleteModal(info.event.id);
               }}
-              events={currentEvents} // Use the current events state
             />
           </Box>
         </Box>
+
+        {/* Modal for creating a new task */}
+        <Dialog open={modalOpen} onClose={handleCloseModal}>
+          <DialogTitle>Create New Task</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="dense"
+              label="Title"
+              name="title"
+              value={newTask.title}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <TextField
+              margin="dense"
+              label="Description"
+              name="description"
+              value={newTask.description}
+              onChange={handleInputChange}
+              fullWidth
+              required
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="priority-label">Priority</InputLabel>
+              <Select
+                labelId="priority-label"
+                name="priority"
+                value={newTask.priority}
+                onChange={handleInputChange}
+                label="Priority"
+                required
+              >
+                <MenuItem value="low">Low</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal}>Cancel</Button>
+            <Button onClick={handleCreateTask}>Create</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={deleteModalOpen} onClose={handleCloseDeleteModal}>
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogContent>
+            <Typography>Are you sure you want to delete this task?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteModal}>Cancel</Button>
+            <Button onClick={handleDeleteTask} color={colors.redAccent[500]}>
+              Delete
+            </Button>
+
+            <Button onClick={handleCompleteTask} color={colors.blueAccent[500]}>
+              Mark As Complete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );

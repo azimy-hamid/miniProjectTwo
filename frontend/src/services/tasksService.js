@@ -78,4 +78,23 @@ const deleteTask = async (taskId) => {
   }
 };
 
-export { fetchAllTasks, createTask, updateTask, deleteTask };
+const getTaskCounts = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(`${API_URL}/getTaskCounts`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Include the token in the request headers
+      },
+    });
+
+    const data = await response.data;
+
+    return data;
+  } catch (error) {
+    console.error("Error getting the tasks:", error);
+    throw error; // Propagate the error to handle it where the function is called
+  }
+};
+
+export { fetchAllTasks, createTask, updateTask, deleteTask, getTaskCounts };

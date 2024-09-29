@@ -13,4 +13,6 @@ taskRoutes.delete(
   taskController.deleteTask
 );
 
+taskRoutes.get("/getTaskCounts", authenticate, taskController.getTaskCounts);
+
 export default taskRoutes;

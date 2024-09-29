@@ -112,7 +112,7 @@ const Tasks = () => {
           onClick={() => handleCompleteTask(params.row.task_id_pk)} // Call handleCompleteTask with task ID
           disabled={params.row.status === "Completed"} // Disable button if task is already completed
         >
-          {params.row.status === "Completed" ? "Completed" : "Mark as Complete"}
+          {params.row.status === "complete" ? "Completed" : "Mark as Complete"}
         </Button>
       ),
     },

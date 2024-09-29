@@ -11,6 +11,7 @@ import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import EditCalendarIcon from "@mui/icons-material/EditCalendar";
 
 const Sidebar = () => {
   const theme = useTheme();
@@ -162,7 +163,7 @@ const Sidebar = () => {
             <Item
               title="View Calendar"
               to="/tasksCalendar"
-              icon={<LibraryAddIcon />}
+              icon={<EditCalendarIcon />}
               selected={selected}
               setSelected={setSelected}
             />
