@@ -62,8 +62,30 @@ const updateUserDetails = async (userData) => {
   }
 };
 
+const deleteUser = async () => {
+  try {
+    // Retrieve the token from local storage for authorization
+    const token = localStorage.getItem("token");
+
+    const response = await axios.delete(
+      `${API_URL}/deleteUser`, // Use DELETE method
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // Include the token in the request headers
+        },
+      }
+    );
+
+    const data = response.data;
+    return data; // Return the response data (success message or updated user data)
+  } catch (error) {
+    console.error("Error deleting user account:", error); // Updated error message
+    throw error; // Propagate the error to handle it where the function is called
+  }
+};
+
 const logout = () => {
   localStorage.removeItem("token"); // Remove the token
 };
 
-export { registerUser, loginUser, logout, updateUserDetails };
+export { registerUser, loginUser, logout, updateUserDetails, deleteUser };

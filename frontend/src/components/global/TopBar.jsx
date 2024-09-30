@@ -9,7 +9,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { useNavigate } from "react-router-dom"; // Import for navigation
-import { logout } from "../../services/authService";
+import { logout, deleteUser } from "../../services/authService";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -34,8 +34,9 @@ const Topbar = () => {
   };
 
   const handleDeleteProfileNavigation = () => {
-    navigate("/delete-profile"); // Navigate to the Delete Profile page
-    handleMenuClose(); // Close the dropdown after navigation
+    deleteUser();
+    logout();
+    window.location.href = "/";
   };
 
   const [anchorEl, setAnchorEl] = useState(null);

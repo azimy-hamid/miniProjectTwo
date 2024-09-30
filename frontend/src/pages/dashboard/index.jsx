@@ -7,6 +7,7 @@ import Sidebar from "../../components/global/SideBar.jsx";
 import PieChart from "../../components/charts/PieChart.jsx";
 import { tokens } from "../../themes.js";
 import BarChart from "../../components/charts/BarChart.jsx";
+import CreateTaskForm from "../createTaskForm/index.jsx";
 
 const Dashboard = () => {
   //   const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -48,6 +49,22 @@ const Dashboard = () => {
             justifyContent="center"
           >
             <BarChart />
+          </Box>
+          {/* Row 2 */}
+          <Box
+            gridColumn="span 8"
+            gridRow="span 3"
+            backgroundColor={colors.primary[400]}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            sx={{
+              // Ensure the content inside stays within bounds
+              overflow: "auto", // Handle overflow by making content scrollable if necessary
+              height: "100%", // Make sure the form takes the full height of the box
+            }}
+          >
+            <CreateTaskForm isDashboard={true} />
           </Box>
         </Box>
       </Box>

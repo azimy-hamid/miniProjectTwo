@@ -27,7 +27,7 @@ const taskSchema = yup.object().shape({
   status: yup.string().oneOf(["incomplete", "complete"]).required("required"),
 });
 
-const CreateTaskForm = () => {
+const CreateTaskForm = ({ isDashboard = false }) => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
@@ -63,23 +63,25 @@ const CreateTaskForm = () => {
 
   return (
     <Box sx={{ display: "flex", position: "relative" }}>
-      <Sidebar />
+      {!isDashboard && <Sidebar />}
       <Box width="100vw">
-        <Topbar />
+        {!isDashboard && <Topbar />}
         <Box
           m="20px"
           sx={{
             width: "70%",
             maxWidth: "1000px",
-            height: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
+            height: isDashboard ? "auto" : "100vh",
+            display: isDashboard ? "block" : "flex",
+            flexDirection: isDashboard ? "initial" : "column",
+            justifyContent: isDashboard ? "initial" : "center",
+            alignItems: isDashboard ? "initial" : "center",
             margin: "0 auto",
           }}
         >
-          <Header title="CREATE TASK" subTitle="Add a new task" />
+          {!isDashboard && (
+            <Header title="CREATE TASK" subTitle="Add a new task" />
+          )}
 
           <Formik
             onSubmit={handleCreateTask}
