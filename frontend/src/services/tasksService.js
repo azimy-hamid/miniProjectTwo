@@ -116,6 +116,25 @@ const getTaskPriorityCounts = async () => {
   }
 };
 
+const fetchAllTodayTasks = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(`${API_URL}/getAllTodayTasks`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Include the token in the request headers
+      },
+    });
+
+    const data = await response.data.tasks;
+
+    return data;
+  } catch (error) {
+    console.error("Error getting the tasks:", error);
+    throw error; // Propagate the error to handle it where the function is called
+  }
+};
+
 export {
   fetchAllTasks,
   createTask,
@@ -123,4 +142,5 @@ export {
   deleteTask,
   getTaskCounts,
   getTaskPriorityCounts,
+  fetchAllTodayTasks,
 };
