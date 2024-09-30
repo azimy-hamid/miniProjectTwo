@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import sequelize from "../config/dbConfig.js";
+import { Op } from "sequelize";
 
 dotenv.config();
 
@@ -433,6 +434,70 @@ const getTaskPriorityCounts = async (req, res) => {
   }
 };
 
+const getAllTodayTasks = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    let decoded;
+
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(401)
+          .json({ getAllTodayTasksMessage: "Token is expired!" });
+      }
+      return res
+        .status(401)
+        .json({ getAllTodayTasksMessage: "Invalid token!" });
+    }
+
+    const userId = decoded.userId;
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ getAllTodayTasksMessage: "User not found!" });
+    }
+
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getAllTasksUserMessage: "User deleted! Recover your account first!",
+      });
+    }
+
+    const user_id_fk = userId; // Extract userId from authenticated request
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to 00:00:00 (start of the day)
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1); // Move to the next day (exclusive)
+
+    // Fetch today's tasks
+    const tasks = await TodoTask.findAll({
+      where: {
+        user_id_fk,
+        hidden: 0,
+        due_date: {
+          [Op.between]: [today, tomorrow], // Range comparison between today and tomorrow
+        },
+      },
+      order: [["due_date", "ASC"]],
+    });
+
+    return res.status(200).json({
+      getAllTodayTasksMessage: "Today's tasks retrieved successfully",
+      tasks,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      getAllTodayTasksMessage: "An error occurred while retrieving tasks.",
+      getAllTodayTasksCatchBlockError: error.message,
+    });
+  }
+};
+
 export {
   getAllTasks,
   createTask,
@@ -440,4 +505,5 @@ export {
   deleteTask,
   getTaskCounts,
   getTaskPriorityCounts,
+  getAllTodayTasks,
 };

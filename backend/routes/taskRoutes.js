@@ -20,4 +20,10 @@ taskRoutes.get(
   taskController.getTaskPriorityCounts
 );
 
+taskRoutes.get(
+  "/getAllTodayTasks",
+  authenticate,
+  taskController.getAllTodayTasks
+);
+
 export default taskRoutes;
