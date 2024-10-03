@@ -29,6 +29,7 @@ const initialValues = {
   email: "",
   name: "",
   last_name: "",
+  password: "",
 };
 
 const userSchema = yup.object().shape({
@@ -36,6 +37,7 @@ const userSchema = yup.object().shape({
   email: yup.string().email("Invalid Email").required("required"),
   name: yup.string().required("required"),
   last_name: yup.string().required("required"),
+  password: yup.string().required("required"),
 });
 
 const UpdateUserForm = () => {
@@ -222,6 +224,32 @@ const UpdateUserForm = () => {
                       <Button
                         variant="contained"
                         onClick={() => handleUpdateField("last_name")}
+                        sx={{ backgroundColor: colors.blueAccent[500] }}
+                      >
+                        Update
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+
+                  <TableRow>
+                    <TableCell>Password</TableCell>
+                    <TableCell>
+                      &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Update Password"
+                        onChange={(e) =>
+                          handleFieldChange("password", e.target.value)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleUpdateField("password")}
                         sx={{ backgroundColor: colors.blueAccent[500] }}
                       >
                         Update
