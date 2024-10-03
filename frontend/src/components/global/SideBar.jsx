@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import { Box, colors, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import { tokens } from "../../themes";
+
+import { getUserDetails } from "../../services/authService.js";
+
 // ICONS
 import HomeIcon from "@mui/icons-material/Home";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
@@ -18,6 +21,7 @@ const Sidebar = () => {
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
+  const [userData, setUserData] = useState({}); // State to store user data
 
   const Item = ({ title, to, icon, selected, setSelected }) => {
     const theme = useTheme();
@@ -36,6 +40,19 @@ const Sidebar = () => {
       </MenuItem>
     );
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getUserDetails(); // Fetch user details
+        setUserData(data); // Set user data
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <Box
@@ -59,6 +76,7 @@ const Sidebar = () => {
         },
       }}
     >
+      {console.log(userData)}
       <ProSidebar collapsed={isCollapsed}>
         <Menu iconShape="square">
           <MenuItem
@@ -98,7 +116,7 @@ const Sidebar = () => {
                   Welcome Back!
                 </Typography>
                 <Typography variant="h4" color={colors.greenAccent[500]}>
-                  Haamed
+                  {userData?.user?.name}
                 </Typography>
               </Box>
             </Box>
