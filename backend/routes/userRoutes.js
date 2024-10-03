@@ -11,5 +11,6 @@ userRoutes.put(
   userController.updateUserDetails
 );
 userRoutes.delete("/deleteUser", authenticate, userController.hideUser);
+userRoutes.get("/getUserDetails", authenticate, userController.getUserDetails);
 
 export default userRoutes;

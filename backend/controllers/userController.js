@@ -182,7 +182,7 @@ const updateUserDetails = async (req, res) => {
 
     const { username, email, name, last_name } = req.body;
 
-    if ((!username, !email && !name && !last_name)) {
+    if (!username && !email && !name && !last_name) {
       return res
         .status(400)
         .json({ updateUserMessage: "At least one field must be updated!" });
@@ -263,4 +263,56 @@ const hideUser = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, updateUserDetails, hideUser };
+const getUserDetails = async (req, res) => {
+  try {
+    // Get the token from the Authorization header
+    const token = req.headers.authorization?.split(" ")[1];
+
+    // Verify the token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(401)
+          .json({ getUserDetailsMessage: "Token is expired!" });
+      }
+      return res.status(401).json({ getUserDetailsMessage: "Invalid token!" });
+    }
+
+    const userId = decoded.userId;
+
+    // Fetch the user details from the database
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ getUserDetailsMessage: "User not found!" });
+    }
+
+    // If user is hidden or deleted
+    if (user.hidden === 1) {
+      return res.status(400).json({
+        getUserDetailsMessage: "User is deleted. Recover your account first!",
+      });
+    }
+
+    // Return the user details (without password)
+    const { username, email, name, last_name } = user;
+    return res.status(200).json({
+      user: {
+        username,
+        email,
+        name,
+        last_name,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      getUserDetailsMessage: "An error occurred while getting user details.",
+      getUserDetailsCatchBlockError: error,
+    });
+  }
+};
+
+export { registerUser, loginUser, updateUserDetails, hideUser, getUserDetails };
