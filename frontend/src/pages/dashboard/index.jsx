@@ -22,7 +22,7 @@ const Dashboard = () => {
       <Sidebar />
       <Box m="20px" width="100vw">
         <Topbar />
-        <PageHeader title="Dashboard" subTitle="Quick Glimpse to Everything." />
+        <PageHeader title="Dashboard" subTitle="Quick Glimpse at Everything." />
 
         <Box
           display="grid"
