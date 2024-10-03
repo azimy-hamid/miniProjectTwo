@@ -24,6 +24,9 @@ import Topbar from "../../components/global/TopBar";
 import Sidebar from "../../components/global/SideBar";
 import { tokens } from "../../themes";
 
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+
 const initialValues = {
   username: "",
   email: "",
@@ -46,6 +49,8 @@ const UpdateUserForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [userData, setUserData] = useState({}); // State to store user data
   const [editableFields, setEditableFields] = useState({}); // State to store editable fields
+  const [showPassword, setShowPassword] = useState(false);
+
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -81,6 +86,10 @@ const UpdateUserForm = () => {
         "Update failed. Please try again.";
       setErrorMessage(errorMsg);
     }
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -237,14 +246,49 @@ const UpdateUserForm = () => {
                       &bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;
                     </TableCell>
                     <TableCell>
-                      <TextField
-                        fullWidth
-                        variant="standard"
-                        placeholder="Update Password"
-                        onChange={(e) =>
-                          handleFieldChange("password", e.target.value)
-                        }
-                      />
+                      <Box
+                        sx={{
+                          position: "relative",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <TextField
+                          fullWidth
+                          variant="standard"
+                          placeholder="Update Password"
+                          type={showPassword ? "text" : "password"}
+                          onChange={(e) =>
+                            handleFieldChange("password", e.target.value)
+                          }
+                          InputProps={{
+                            endAdornment: (
+                              <Button
+                                onClick={handleClickShowPassword}
+                                sx={{
+                                  position: "absolute",
+                                  right: 0,
+                                  zIndex: 1,
+                                  backgroundColor: "transparent", // No background color
+                                  "&:hover": {
+                                    backgroundColor: "transparent", // Remove hover effect
+                                  },
+                                  "&:focus": {
+                                    outline: "none", // Remove outline on focus
+                                  },
+                                }}
+                                disableRipple
+                              >
+                                {showPassword ? (
+                                  <VisibilityOffIcon />
+                                ) : (
+                                  <VisibilityIcon />
+                                )}
+                              </Button>
+                            ),
+                          }}
+                        />
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Button
