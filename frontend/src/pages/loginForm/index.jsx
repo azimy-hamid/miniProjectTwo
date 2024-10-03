@@ -7,6 +7,9 @@ import { loginUser } from "../../services/authService";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useState } from "react"; // Import useState to manage error state
 
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+
 const initialValues = {
   username: "",
   email: "",
@@ -25,7 +28,12 @@ const userSchema = yup.object().shape({
 const LoginForm = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const navigate = useNavigate(); // Initialize navigate
-  const [errorMessage, setErrorMessage] = useState(""); // State to store error messages
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleLogin = async (values) => {
     try {
@@ -109,19 +117,46 @@ const LoginForm = () => {
                 helperText={touched.email && errors.email}
                 sx={{ gridColumn: "span 2" }}
               />
-              <TextField
-                fullWidth
-                variant="filled"
-                type="password"
-                label="Password"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                value={values.password}
-                name="password"
-                error={!!touched.password && !!errors.password}
-                helperText={touched.password && errors.password}
-                sx={{ gridColumn: "span 4" }}
-              />
+              <Box sx={{ position: "relative", gridColumn: "span 4" }}>
+                <TextField
+                  fullWidth
+                  variant="filled"
+                  type={showPassword ? "text" : "password"}
+                  label="Password"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.password}
+                  name="password"
+                  error={!!touched.password && !!errors.password}
+                  helperText={touched.password && errors.password}
+                  InputProps={{
+                    endAdornment: (
+                      <Button
+                        onClick={handleClickShowPassword}
+                        sx={{
+                          position: "absolute",
+                          right: 0,
+                          zIndex: 1,
+                          backgroundColor: "transparent",
+                          "&:hover": {
+                            backgroundColor: "transparent",
+                          },
+                          "&:focus": {
+                            outline: "none",
+                          },
+                        }}
+                        disableRipple // Disable the click effect
+                      >
+                        {showPassword ? (
+                          <VisibilityOffIcon />
+                        ) : (
+                          <VisibilityIcon />
+                        )}
+                      </Button>
+                    ),
+                  }}
+                />
+              </Box>
               {/* Error message displayed below the password field */}
               <Box
                 sx={{
