@@ -2,15 +2,13 @@ import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import "react-pro-sidebar/dist/css/styles.css";
 import { Box, colors, IconButton, Typography, useTheme } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom"; // Import useLocation
 import { tokens } from "../../themes";
-
 import { getUserDetails } from "../../services/authService.js";
 
 // ICONS
 import HomeIcon from "@mui/icons-material/Home";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import AssignmentIcon from "@mui/icons-material/Assignment";
@@ -22,10 +20,9 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
   const [userData, setUserData] = useState({}); // State to store user data
+  const location = useLocation(); // Get current location
 
-  const Item = ({ title, to, icon, selected, setSelected }) => {
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
+  const Item = ({ title, to, icon }) => {
     return (
       <MenuItem
         active={selected === title}
@@ -54,13 +51,41 @@ const Sidebar = () => {
     fetchData();
   }, []);
 
+  // Update selected state based on current location
+  useEffect(() => {
+    const path = location.pathname;
+    switch (path) {
+      case "/dashboard":
+        setSelected("Dashboard");
+        break;
+      case "/updateUserDetails":
+        setSelected("Update details");
+        break;
+      case "/getAllTask":
+        setSelected("View All Tasks");
+        break;
+      case "/createTask":
+        setSelected("Add Task");
+        break;
+      case "/tasksCalendar":
+        setSelected("View Calendar");
+        break;
+      default:
+        setSelected("Dashboard"); // Default to Dashboard or set to any appropriate value
+        break;
+    }
+  }, [location]); // Dependency array ensures this runs on location change
+
   return (
     <Box
       sx={{
-        // "% .pro-sidebar": { , background: "red" },
+        display: "flex",
+        height: "100vh",
         "& .pro-sidebar-inner": {
           height: "100vh",
           background: `${colors.primary[400]} !important`,
+          position: "fixed", // Fixed position
+          width: isCollapsed ? "80px" : "240px", // Fluid width based on collapsed state
         },
         "& .pro-icon-wrapper": {
           backgroundColor: "transparent !important",
@@ -76,7 +101,6 @@ const Sidebar = () => {
         },
       }}
     >
-      {console.log(userData)}
       <ProSidebar collapsed={isCollapsed}>
         <Menu iconShape="square">
           <MenuItem
@@ -94,15 +118,13 @@ const Sidebar = () => {
                 alignItems="center"
                 ml="15px"
               >
-                {/* <Typography variant="h3" color={colors.grey[100]}>
-                  Admin
-                </Typography> */}
                 <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
                   <MenuOutlinedIcon />
                 </IconButton>
               </Box>
             )}
           </MenuItem>
+
           {/* USER */}
           {!isCollapsed && (
             <Box mb="25px">
@@ -124,14 +146,7 @@ const Sidebar = () => {
 
           {/* MENU ITEMS */}
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
-            <Item
-              title="Dashboard"
-              to="/dashboard"
-              icon={<HomeIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-
+            <Item title="Dashboard" to="/dashboard" icon={<HomeIcon />} />
             <Typography
               variant="h6"
               color={colors.grey[300]}
@@ -143,8 +158,6 @@ const Sidebar = () => {
               title="Update details"
               to="/updateUserDetails"
               icon={<ManageAccountsIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
             <Typography
               variant="h6"
@@ -153,23 +166,12 @@ const Sidebar = () => {
             >
               Tasks
             </Typography>
-
             <Item
               title="View All Tasks"
               to="/getAllTask"
               icon={<AssignmentIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
-
-            <Item
-              title="Add Task"
-              to="/createTask"
-              icon={<LibraryAddIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
-
+            <Item title="Add Task" to="/createTask" icon={<LibraryAddIcon />} />
             <Typography
               variant="h6"
               color={colors.grey[300]}
@@ -177,13 +179,10 @@ const Sidebar = () => {
             >
               Calendar
             </Typography>
-
             <Item
               title="View Calendar"
               to="/tasksCalendar"
               icon={<EditCalendarIcon />}
-              selected={selected}
-              setSelected={setSelected}
             />
           </Box>
         </Menu>
