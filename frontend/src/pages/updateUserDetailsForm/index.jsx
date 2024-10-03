@@ -1,13 +1,28 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  colors,
+  useTheme,
+} from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../components/FormHeader";
-import { updateUserDetails } from "../../services/authService";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import { useState } from "react"; // Import useState to manage error state
+import { updateUserDetails, getUserDetails } from "../../services/authService"; // Assuming you'll create a getUserDetails function
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import Topbar from "../../components/global/TopBar";
 import Sidebar from "../../components/global/SideBar";
+import { tokens } from "../../themes";
 
 const initialValues = {
   username: "",
@@ -25,24 +40,44 @@ const userSchema = yup.object().shape({
 
 const UpdateUserForm = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
-  const navigate = useNavigate(); // Initialize navigate
-  const [errorMessage, setErrorMessage] = useState(""); // State to store error messages
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [userData, setUserData] = useState({}); // State to store user data
+  const [editableFields, setEditableFields] = useState({}); // State to store editable fields
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
-  const handleUpdate = async (values) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getUserDetails(); // Fetch user details
+        setUserData(data); // Set user data
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleFieldChange = (field, value) => {
+    setEditableFields((prevFields) => ({
+      ...prevFields,
+      [field]: value,
+    }));
+  };
+
+  const handleUpdateField = async (field) => {
     try {
-      // Here you should include the token in the request headers as per your backend requirements
-      const token = localStorage.getItem("token"); // Adjust based on how you're storing the token
-      const data = await updateUserDetails(values, token);
-      setErrorMessage(""); // Clear any previous errors on success
-      // Optionally navigate or display a success message
-      window.location.href = "/dashboard"; // Adjust the navigation as needed
+      const values = { [field]: editableFields[field] };
+      const data = await updateUserDetails(values);
+      setErrorMessage("");
+      window.location.href = "/dashboard";
     } catch (error) {
-      // Extract error message from the response or set a generic message
       const errorMsg =
         error.response?.data?.updateUserMessage ||
         "Update failed. Please try again.";
-      setErrorMessage(errorMsg); // Set the error message
-      console.error("Update failed:", error);
+      setErrorMessage(errorMsg);
     }
   };
 
@@ -54,14 +89,14 @@ const UpdateUserForm = () => {
         <Box
           m="20px"
           sx={{
-            width: "70%", // Set the width to 70%
-            maxWidth: "1000px", // Optional: Set a maximum width
-            height: "100vh", // Full viewport height to center vertically
+            width: "70%",
+            maxWidth: "1000px",
+            height: "100vh",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center", // Center horizontally
-            alignItems: "center", // Center vertically
-            margin: "0 auto", // Ensure box is centered
+            justifyContent: "center",
+            alignItems: "center",
+            margin: "0 auto",
           }}
         >
           <Header
@@ -69,122 +104,144 @@ const UpdateUserForm = () => {
             subTitle="Update Your Information!"
           />
 
-          <Formik
-            onSubmit={handleUpdate}
-            initialValues={initialValues}
-            validationSchema={userSchema}
-          >
-            {({
-              values,
-              errors,
-              touched,
-              handleBlur,
-              handleChange,
-              handleSubmit,
-            }) => (
-              <form onSubmit={handleSubmit}>
-                <Box
-                  display="grid"
-                  gap="30px"
-                  gridTemplateColumns="repeat(4, minmax(0, 1fr))"
-                  sx={{
-                    "& > div": {
-                      gridColumn: isNonMobile ? undefined : "span 4",
-                    },
-                  }}
-                >
-                  <TextField
-                    fullWidth
-                    variant="filled"
-                    type="text"
-                    label="Username"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    value={values.username}
-                    name="username"
-                    error={!!touched.username && !!errors.username}
-                    helperText={touched.username && errors.username}
-                    sx={{ gridColumn: "span 2" }}
-                  />
-                  <TextField
-                    fullWidth
-                    variant="filled"
-                    type="text"
-                    label="Email"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    value={values.email}
-                    name="email"
-                    error={!!touched.email && !!errors.email}
-                    helperText={touched.email && errors.email}
-                    sx={{ gridColumn: "span 2" }}
-                  />
-                  <TextField
-                    fullWidth
-                    variant="filled"
-                    type="text"
-                    label="First Name"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    value={values.name}
-                    name="name"
-                    error={!!touched.name && !!errors.name}
-                    helperText={touched.name && errors.name}
-                    sx={{ gridColumn: "span 2" }}
-                  />
-                  <TextField
-                    fullWidth
-                    variant="filled"
-                    type="text"
-                    label="Last Name"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    value={values.last_name}
-                    name="last_name"
-                    error={!!touched.last_name && !!errors.last_name}
-                    helperText={touched.last_name && errors.last_name}
-                    sx={{ gridColumn: "span 2" }}
-                  />
-                  {/* Error message displayed below the last name field */}
-                  <Box
-                    sx={{
-                      gridColumn: "span 4",
-                      minHeight: "20px", // Adjust this height as needed
-                      mt: -1, // Optional: Adjust to move it closer to the last name field
-                      ml: 1, // Optional: Small margin to align with input fields
-                    }}
-                  >
-                    {errorMessage && (
-                      <Typography variant="body2" color="error">
-                        {errorMessage}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
+          {/* User Details Table */}
+          {userData ? (
+            <TableContainer
+              component={Paper}
+              sx={{
+                "& .MuiTableHead-root": {
+                  backgroundColor: colors.blueAccent[700],
+                },
+                "& .MuiTableCell-head": {
+                  color: colors.grey[100],
+                  fontWeight: "bold",
+                  backgroundColor: colors.blueAccent[700],
+                },
+                "& .MuiTableRow-root": {
+                  backgroundColor: colors.primary[400],
+                },
+                "& .MuiTableCell-root": {
+                  borderBottom: "none",
+                  color: colors.grey[100],
+                },
+              }}
+            >
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Details</TableCell>
+                    <TableCell>Current Detail</TableCell>
+                    <TableCell>New Detail</TableCell>
+                    <TableCell>Update Detail</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Username</TableCell>
+                    <TableCell>{userData?.user?.username}</TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Update Username"
+                        onChange={(e) =>
+                          handleFieldChange("username", e.target.value)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        sx={{ backgroundColor: colors.blueAccent[500] }}
+                        onClick={() => handleUpdateField("username")}
+                      >
+                        Update
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Email</TableCell>
+                    <TableCell>{userData?.user?.email}</TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Update Email"
+                        onChange={(e) =>
+                          handleFieldChange("email", e.target.value)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleUpdateField("email")}
+                        sx={{ backgroundColor: colors.blueAccent[500] }}
+                      >
+                        Update
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>First Name</TableCell>
+                    <TableCell>{userData?.user?.name}</TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Update First Name"
+                        onChange={(e) =>
+                          handleFieldChange("name", e.target.value)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleUpdateField("name")}
+                        sx={{ backgroundColor: colors.blueAccent[500] }}
+                      >
+                        Update
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Last Name</TableCell>
+                    <TableCell>{userData?.user?.last_name}</TableCell>
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        variant="standard"
+                        placeholder="Update Last Name"
+                        onChange={(e) =>
+                          handleFieldChange("last_name", e.target.value)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleUpdateField("last_name")}
+                        sx={{ backgroundColor: colors.blueAccent[500] }}
+                      >
+                        Update
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Typography>Loading user details...</Typography>
+          )}
 
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  mt="20px"
-                  gap="10px"
-                >
-                  {/* Update Button */}
-                  <Button type="submit" color="secondary" variant="contained">
-                    Update
-                  </Button>
-
-                  {/* Cancel Button (without submitting the form) */}
-                  <Button
-                    color="secondary"
-                    variant="outlined"
-                    onClick={() => navigate("/dashboard")} // Navigate to the dashboard
-                  >
-                    Cancel
-                  </Button>
-                </Box>
-              </form>
+          <Box sx={{ minHeight: "20px", mt: -1, ml: 1 }}>
+            {errorMessage && (
+              <Typography variant="body2" color="error">
+                {errorMessage}
+              </Typography>
             )}
-          </Formik>
+          </Box>
         </Box>
       </Box>
     </Box>

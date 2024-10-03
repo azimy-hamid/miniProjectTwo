@@ -309,17 +309,17 @@ const Calendar = () => {
         <Dialog open={deleteModalOpen} onClose={handleCloseDeleteModal}>
           <DialogTitle>Confirm Deletion</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to delete this task?</Typography>
+            <Typography>
+              Do you want to delete this task or mark it as complete?
+            </Typography>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDeleteModal}>Cancel</Button>
-            <Button onClick={handleDeleteTask} color={colors.redAccent[500]}>
+            <Button onClick={handleDeleteTask} color="error">
               Delete
             </Button>
 
-            <Button onClick={handleCompleteTask} color={colors.blueAccent[500]}>
-              Mark As Complete
-            </Button>
+            <Button onClick={handleCompleteTask}>Mark As Complete</Button>
           </DialogActions>
         </Dialog>
       </Box>
