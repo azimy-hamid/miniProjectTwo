@@ -163,7 +163,6 @@ const loginUser = async (req, res) => {
 };
 
 // upidate the user
-
 const updateUserDetails = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
@@ -180,9 +179,9 @@ const updateUserDetails = async (req, res) => {
 
     const userId = decoded.userId;
 
-    const { username, email, name, last_name } = req.body;
+    const { username, email, name, last_name, password } = req.body;
 
-    if (!username && !email && !name && !last_name) {
+    if (!username && !email && !name && !last_name && !password) {
       return res
         .status(400)
         .json({ updateUserMessage: "At least one field must be updated!" });
@@ -192,6 +191,13 @@ const updateUserDetails = async (req, res) => {
       return res
         .status(400)
         .json({ updateUserMessage: "Enter a valid email address!" });
+    }
+
+    if (password && !validator.isStrongPassword(password)) {
+      return res.status(400).json({
+        updateUserMessage:
+          "Password not strong enough! Must be at least 8 characters long, contain uppercase and lowercase letters, and a special character.",
+      });
     }
 
     const user = await User.findByPk(userId);
@@ -206,11 +212,18 @@ const updateUserDetails = async (req, res) => {
       });
     }
 
+    // If password is provided, hash it before saving
+    let updatedPassword = user.password;
+    if (password) {
+      updatedPassword = await bcrypt.hash(password, 10);
+    }
+
     await user.update({
       username: username || user.username,
       email: email || user.email,
       name: name || user.name,
       last_name: last_name || user.last_name,
+      password: updatedPassword, // Update password if provided
     });
 
     return res
