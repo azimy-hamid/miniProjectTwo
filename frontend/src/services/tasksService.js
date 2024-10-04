@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/task"; // Base URL of your API
+const API_URL = `${process.env.REACT_APP_API_BASE_URL}/task`;
 
 const fetchAllTasks = async () => {
   try {

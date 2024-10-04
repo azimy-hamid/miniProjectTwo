@@ -12,7 +12,7 @@ import Tasks from "./pages/allTasksTable/index.jsx";
 import CreateTaskForm from "./pages/createTaskForm/index.jsx";
 import TasksCalendar from "./pages/tasksCalendar/index.jsx";
 
-const API_URL = "http://localhost:8000/verifyToken"; // Base URL of your API
+const API_URL = `${process.env.REACT_APP_API_BASE_URL}/verifyToken`;
 
 function App() {
   const [theme, colorMode] = useMode();
