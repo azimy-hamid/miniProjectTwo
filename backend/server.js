@@ -20,7 +20,7 @@ const startServer = async () => {
 
   app.listen(process.env.PORT_NUMBER, () => {
     console.log(
-      `Lab Eight Backend Server running on port: ${process.env.PORT_NUMBER}`
+      `Mini project Two backend Server running on port: ${process.env.PORT_NUMBER}`
     );
   });
 };
