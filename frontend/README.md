@@ -41,13 +41,12 @@ This is a React-based frontend application designed to provide a comprehensive i
 frontend/
 ├── src/
 │ ├── components/ # Contains reusable components
-│ ├── context/ # Context API for global state management
-│ ├── hooks/ # Custom hooks
 │ ├── pages/ # Different pages for the application
-│ ├── styles/ # Global styles and themes
-│ ├── utils/ # Utility functions
+│ ├── services/ # Services calling the api endpoints
 │ ├── App.js # Main application component
-│ └── index.js # Application entry point
+│ ├── index.css # Contains some css styling
+│ ├── index.js # Application entry point
+│ └── themes.js # Application theme premitives
 ├── .env # Environment variables
 ├── package.json # Project metadata and dependencies
 └── README.md # Project documentation
@@ -105,7 +104,9 @@ This React project serves as a robust frontend solution for managing tasks effic
 
 ## Future Improvements
 
-- Implement password recovery functionality.
-- Add transaction history filtering options.
-- Enhance the UI with additional themes and customizations.
-- Improve error handling and user feedback during transactions.
+- **Implement Password Recovery Functionality**: Allow users to reset their passwords securely through email verification.
+- **Enhance the UI with Modern Themes and Customizations**: Provide users with a selection of customizable themes and layouts for a more personalized experience.
+- **Introduce Task Reminders and Notifications**: Implement email or in-app notifications to remind users of upcoming deadlines and important tasks.
+- **Add Collaboration Features**: Enable users to share tasks or projects with team members for better teamwork and accountability.
+- **Implement Subtasks and Task Dependencies**: Allow users to create subtasks and set dependencies, helping them organize complex projects more effectively.
+- **Develop Analytics and Reporting Tools**: Provide insights into user productivity through dashboards that display task completion rates, overdue tasks, and time spent on tasks.
