@@ -127,9 +127,9 @@ frontend/
 4. Create a .env file in the root directory and add your environment variables.
 5. Start the server:
 
-```bash
-npm start
-```
+   ```bash
+   npm start
+   ```
 
 Frontend
 Clone the repository.
@@ -160,15 +160,15 @@ Open your browser and navigate to http://localhost:3000 to view the application.
 
 4. Create a .env file in the root directory and add your API base URL:
 
-```plaintext
-REACT_APP_API_BASE_URL=http://localhost:8000
-```
+   ```plaintext
+   REACT_APP_API_BASE_URL=http://localhost:8000
+   ```
 
 5. Start the development server:
 
-```bash
-npm start
-```
+   ```bash
+   npm start
+   ```
 
 6. Open your browser and navigate to http://localhost:3000 to view the application.
 
