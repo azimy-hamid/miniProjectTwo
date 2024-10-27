@@ -1,5 +1,7 @@
 # Task Management App
 
+![Dashboard ScreenShot](./dashboard-readme.png)
+
 ## Overview
 
 This is a comprehensive task management application that includes both a backend and a frontend. The backend, built using Node.js, Express, and Sequelize, provides a RESTful API for managing tasks with user authentication. The frontend, developed with React, offers a modern and user-friendly interface for task management.
