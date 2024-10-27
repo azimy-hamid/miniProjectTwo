@@ -50,28 +50,32 @@ const Calendar = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [taskToComplete, setTaskToComplete] = useState(null);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  // Fetch tasks from your API when the component loads
   useEffect(() => {
     const fetchTodoTasks = async () => {
-      try {
-        const tasks = await fetchAllTasks(); // Fetch from controller
-        const events = tasks.map((task) => ({
-          id: task.task_id_pk,
-          title: `${task.title} (${task.priority})`,
-          description: task.description,
-          start: task.due_date,
-          status: task.status,
-          allDay: true,
-        }));
-        setCurrentEvents(events);
-      } catch (error) {
-        console.error("Failed to fetch tasks:", error);
+      if (initialLoad) {
+        // Only fetch tasks on initial load
+        try {
+          const tasks = await fetchAllTasks(); // Fetch from controller
+          const events = tasks.map((task) => ({
+            id: task.task_id_pk,
+            title: `${task.title} (${task.priority})`,
+            description: task.description,
+            start: task.due_date,
+            status: task.status,
+            allDay: true,
+          }));
+          setCurrentEvents(events);
+          setInitialLoad(false); // Set to false after initial load
+        } catch (error) {
+          console.error("Failed to fetch tasks:", error);
+        }
       }
     };
 
     fetchTodoTasks();
-  }, []);
+  }, [initialLoad]);
 
   // Handle modal open/close
   const handleOpenModal = (selected) => {
@@ -89,7 +93,6 @@ const Calendar = () => {
     setNewTask((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle form submission in the modal
   const handleCreateTask = () => {
     const calendarApi = selectedDate.view.calendar;
     calendarApi.unselect(); // Unselect the date after task creation
@@ -113,6 +116,7 @@ const Calendar = () => {
           setCurrentEvents((prevEvents) => [...prevEvents, newEvent]);
 
           setModalOpen(false); // Close modal after creation
+          setInitialLoad(true);
         })
         .catch((error) => {
           console.error("Failed to create task:", error);
