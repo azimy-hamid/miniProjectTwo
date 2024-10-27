@@ -1,9 +1,17 @@
-import { Box, Typography } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
 import { tokens } from "../themes.js";
 import { useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { fetchAllTodayTasks } from "../services/tasksService.js";
-import PageHeader from "./PageHeader.jsx";
 
 const TodayTasks = ({ isDashboard = false }) => {
   const theme = useTheme();
@@ -25,11 +33,26 @@ const TodayTasks = ({ isDashboard = false }) => {
   }, []);
 
   return (
-    <Box>
+    <Box
+      sx={{
+        padding: "2.5rem 1rem 0 1rem",
+      }}
+    >
       <Box
-        sx={{ textAlign: "center", paddingTop: "0.5rem", marginBottom: "0" }}
+        sx={{
+          backgroundColor: colors.greenAccent[900],
+          padding: "1rem",
+          textAlign: "center",
+          mb: "1rem",
+        }}
       >
-        <PageHeader title="Tasks For Today" />
+        <Typography
+          variant="h4"
+          color={colors.blueAccent[500]}
+          fontWeight="600"
+        >
+          Tasks For Today
+        </Typography>
       </Box>
 
       {tasks.length === 0 ? (
@@ -37,50 +60,69 @@ const TodayTasks = ({ isDashboard = false }) => {
           No tasks for today
         </Typography>
       ) : (
-        tasks.map((task, i) => (
-          <Box
-            key={`${task.task_id_pk}-${i}`}
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            borderBottom={`4px solid ${colors.greenAccent[500]}`}
-            p="15px"
-          >
-            {/* Task Title and Priority */}
-            <Box>
-              <Typography
-                color={colors.greenAccent[500]}
-                variant="h5"
-                fontWeight="600"
-              >
-                {task.title}
-              </Typography>
-
-              <Typography color={colors.grey[100]} variant="body1">
-                Priority: {task.priority}
-              </Typography>
-            </Box>
-
-            {/* Due Date */}
-            <Box color={colors.grey[100]}>
-              {new Date(task.due_date).toLocaleString()}{" "}
-              {/* Display task due date */}
-            </Box>
-
-            {/* Task Status */}
-            <Box
-              backgroundColor={
-                task.status === "complete"
-                  ? colors.greenAccent[500]
-                  : colors.redAccent[500]
-              } // Green for complete, red for incomplete
-              p="5px 10px"
-              borderRadius="4px"
-            >
-              {task.status}
-            </Box>
-          </Box>
-        ))
+        <TableContainer sx={{ marginTop: "1rem", borderRadius: "8px" }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell
+                  sx={{ color: colors.greenAccent[500], fontWeight: "600" }}
+                >
+                  Task
+                </TableCell>
+                <TableCell
+                  sx={{ color: colors.greenAccent[500], fontWeight: "600" }}
+                >
+                  Priority
+                </TableCell>
+                <TableCell
+                  sx={{ color: colors.greenAccent[500], fontWeight: "600" }}
+                >
+                  Due Date
+                </TableCell>
+                <TableCell
+                  sx={{ color: colors.greenAccent[500], fontWeight: "600" }}
+                >
+                  Status
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tasks.map((task, i) => (
+                <TableRow key={`${task.task_id_pk}-${i}`}>
+                  <TableCell>
+                    <Typography color={colors.greenAccent[500]} variant="h6">
+                      {task.title}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography color={colors.grey[100]}>
+                      {task.priority}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography color={colors.grey[100]}>
+                      {new Date(task.due_date).toLocaleString()}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Box
+                      backgroundColor={
+                        task.status === "complete"
+                          ? colors.greenAccent[500]
+                          : colors.redAccent[500]
+                      }
+                      p="5px 10px"
+                      borderRadius="4px"
+                      textAlign="center"
+                    >
+                      {task.status}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Box>
   );

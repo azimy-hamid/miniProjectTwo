@@ -5,6 +5,7 @@ import {
   Typography,
   MenuItem,
   Grid,
+  useTheme,
 } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -15,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Topbar from "../../components/global/TopBar";
 import Sidebar from "../../components/global/SideBar";
+import { tokens } from "../../themes";
 
 // Initial values for the form fields
 const initialValues = {
@@ -39,6 +41,8 @@ const CreateTaskForm = ({ isDashboard = false }) => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
   const handleCreateTask = async (values) => {
     try {
@@ -89,6 +93,25 @@ const CreateTaskForm = ({ isDashboard = false }) => {
         >
           {!isDashboard && (
             <Header title="CREATE TASK" subTitle="Add a new task" />
+          )}
+          {isDashboard && (
+            <Box
+              sx={{
+                backgroundColor: colors.greenAccent[900],
+                padding: "1rem",
+                textAlign: "center",
+                mb: "1rem",
+                width: "100%", // Ensure full width in the container
+              }}
+            >
+              <Typography
+                variant="h4"
+                color={colors.blueAccent[500]}
+                fontWeight="600"
+              >
+                Add Tasks
+              </Typography>
+            </Box>
           )}
 
           <Formik

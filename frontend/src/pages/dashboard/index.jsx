@@ -1,7 +1,6 @@
-import { Box, Button, TextField, Typography, useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import PageHeader from "../../components/PageHeader.jsx";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Topbar from "../../components/global/TopBar.jsx";
 import Sidebar from "../../components/global/SideBar.jsx";
 import PieChart from "../../components/charts/PieChart.jsx";
@@ -11,9 +10,7 @@ import CreateTaskForm from "../createTaskForm/index.jsx";
 import TodayTasks from "../../components/TodayTasks.jsx";
 
 const Dashboard = () => {
-  //   const isNonMobile = useMediaQuery("(min-width:600px)");
-  //   const navigate = useNavigate(); // Initialize navigate
-
+  const isNonMobile = useMediaQuery("(min-width:600px)"); // Check for non-mobile screen size
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -26,12 +23,12 @@ const Dashboard = () => {
 
         <Box
           display="grid"
-          gridTemplateColumns="repeat(12, 1fr)"
+          gridTemplateColumns={isNonMobile ? "repeat(12, 1fr)" : "1fr"} // Adjust columns based on screen size
           gridAutoRows="140px"
           gap="20px"
         >
           <Box
-            gridColumn="span 5"
+            gridColumn={isNonMobile ? "span 5" : "span 1"} // Adjust for mobile
             gridRow="span 2"
             backgroundColor={colors.primary[400]}
             display="flex"
@@ -42,7 +39,7 @@ const Dashboard = () => {
           </Box>
 
           <Box
-            gridColumn="span 7"
+            gridColumn={isNonMobile ? "span 7" : "span 1"} // Adjust for mobile
             gridRow="span 2"
             backgroundColor={colors.primary[400]}
             display="flex"
@@ -51,37 +48,35 @@ const Dashboard = () => {
           >
             <BarChart />
           </Box>
-          {/* Row 2 */}
+
           <Box
-            gridColumn="span 8"
+            gridColumn={isNonMobile ? "span 7" : "span 1"} // Adjust for mobile
             gridRow="span 3"
             backgroundColor={colors.primary[400]}
             display="flex"
             alignItems="center"
             justifyContent="center"
             sx={{
-              // Ensure the content inside stays within bounds
-              overflow: "auto", // Handle overflow by making content scrollable if necessary
-              height: "100%", // Make sure the form takes the full height of the box
+              overflow: "auto", // Make content scrollable if necessary
+              height: "100%",
             }}
           >
             <CreateTaskForm isDashboard={true} />
           </Box>
 
           <Box
-            gridColumn="span 4"
+            gridColumn={isNonMobile ? "span 5" : "span 1"} // Adjust for mobile
             gridRow="span 3"
             backgroundColor={colors.primary[400]}
             display="flex"
             alignItems="start"
             justifyContent="center"
             sx={{
-              // Ensure the content inside stays within bounds
-              overflow: "auto", // Handle overflow by making content scrollable if necessary
-              height: "100%", // Make sure the form takes the full height of the box
+              overflow: "auto", // Make content scrollable if necessary
+              height: "100%",
             }}
           >
-            <TodayTasks />
+            <TodayTasks isDashboard={true} />
           </Box>
         </Box>
       </Box>
