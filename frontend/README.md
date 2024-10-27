@@ -5,7 +5,7 @@
 **Description:**
 This is a React-based frontend application designed to provide a comprehensive interface for managing tasks effectively. The project utilizes Material-UI for design and styling, ensuring a modern and user-friendly interface. Axios is employed for seamless API calls, allowing for real-time data updates. Additionally, the application integrates various libraries to enhance data visualization and user interaction, facilitating an efficient workflow for users to organize, prioritize, and track their tasks effortlessly.
 
-# Table of Contents
+## Table of Contents
 
 1. [Project Overview](#project-overview)
    - Project Name
@@ -62,7 +62,7 @@ frontend/
 - **Axios:** For making HTTP requests to the back end.
 - **Formik & Yup:** For form management and validation.
 
-### Prerequisites
+## Prerequisites
 
 - Node.js installed on your machine.
 - Basic knowledge of React and Node.js.
