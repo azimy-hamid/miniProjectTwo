@@ -53,6 +53,20 @@ frontend/
 └── README.md # Project documentation
 ```
 
+## Technologies Used
+
+- **Frontend:**
+- **React:** JavaScript library for building user interfaces.
+- **Material-UI:** A popular React UI framework for implementing Material Design.
+- **Nivo:** A data visualization library for rendering beautiful charts and graphs.
+- **Axios:** For making HTTP requests to the back end.
+- **Formik & Yup:** For form management and validation.
+
+### Prerequisites
+
+- Node.js installed on your machine.
+- Basic knowledge of React and Node.js.
+
 ## Setup and Installation
 
 To run this project locally, follow these steps:
@@ -88,3 +102,10 @@ npm start
 ## Conclusion
 
 This React project serves as a robust frontend solution for managing tasks efficiently, emphasizing usability, and intuitive design. By leveraging various libraries and frameworks, the app enhances the user experience, making it easier for users to organize, track, and visualize their tasks. The integration of data visualization tools allows for clear insights into task progress, improving overall productivity and facilitating better decision-making.
+
+## Future Improvements
+
+- Implement password recovery functionality.
+- Add transaction history filtering options.
+- Enhance the UI with additional themes and customizations.
+- Improve error handling and user feedback during transactions.
