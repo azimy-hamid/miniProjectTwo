@@ -37,6 +37,7 @@ This is a React-based frontend application designed to provide a comprehensive i
 
 ## Project Structure
 
+```plaintext
 frontend/
 ├── src/
 │ ├── components/ # Contains reusable components
@@ -50,6 +51,7 @@ frontend/
 ├── .env # Environment variables
 ├── package.json # Project metadata and dependencies
 └── README.md # Project documentation
+```
 
 ## Setup and Installation
 
